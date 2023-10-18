@@ -1,6 +1,4 @@
 #include "Camera.h"
-#include "Vector3f.h"
-#include "Vector4f.h"
 
 Camera::Camera()
 {

@@ -1,5 +1,4 @@
-#include "Matrix3f.h"
-#include "Matrix4f.h"
+#include "vecmath.h"
 #include <iostream>
 
 class Camera
