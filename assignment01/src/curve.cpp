@@ -46,6 +46,52 @@ Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
     // receive have G1 continuity.  Otherwise, the TNB will not be
     // be defined at points where this does not hold.
 
+    Curve result;
+    Matrix4f ctrlPointCoordsMat(0.f);
+    Matrix4f Bernstein(1.f, -3.f, 3.f, -1.f, 0.f, 3.f, -6.f, 3.f, 0.f, 0.f, 3.f, -3.f, 0.f, 0.f, 0.f, 1.f);
+    Matrix4f BernsteinDeriv(-1.f, 2.f, -1.f, 0.f, 1.f, -4.f, 3.f, 0.f, 0.f, 2.f, -3.f, 0.f, 0.f, 0.f, 1.f, 0.f);
+    float resolution = 1.f / float(steps);
+    //std::cout << "resolution: " << resolution << std::endl;
+    
+    for (unsigned i = 0; i < P.size(); i++)
+    {
+        Vector4f column(P[i][0], P[i][1], P[i][2], 0.f);
+        ctrlPointCoordsMat.setCol(i, column);
+    }
+
+    for (unsigned i = 0; i <= steps; i++)
+    {
+        float t = (float)i * resolution;
+        Vector4f basis(1.f, t, t * t, t * t * t);
+        CurvePoint curvePoint;
+        Vector4f multiplicationResultV = (ctrlPointCoordsMat * Bernstein) * basis;
+        curvePoint.V = multiplicationResultV.xyz();
+        Vector4f multiplicationResultT = (ctrlPointCoordsMat * BernsteinDeriv) * basis;
+        curvePoint.T = multiplicationResultT.xyz().normalized();
+        //curvePoint.T.print();
+        if (i == 0)
+        {
+            Vector3f Bzero;
+            Bzero[2] = 1.f;
+            Bzero[1] = 0.f - (curvePoint.T[0] / curvePoint.T[1]);
+            Bzero = Bzero.normalized();
+            curvePoint.B = Bzero;
+            //curvePoint.B.print();
+            Vector3f Nzero;
+            Nzero = Nzero.cross(Bzero, curvePoint.T);
+            curvePoint.N = Nzero.normalized();
+            //curvePoint.N.print();
+        }
+        else
+        {
+            curvePoint.N = curvePoint.N.cross(result[i - 1].B, curvePoint.T).normalized();
+            //curvePoint.N.print();
+            curvePoint.B = curvePoint.B.cross(curvePoint.T, curvePoint.N).normalized();
+            //curvePoint.N.print();
+        }
+        result.push_back(curvePoint);
+    }
+
     cerr << "\t>>> evalBezier has been called with the following input:" << endl;
 
     cerr << "\t>>> Control points (type vector< Vector3f >): "<< endl;
@@ -58,7 +104,8 @@ Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
     cerr << "\t>>> Returning empty curve." << endl;
 
     // Right now this will just return this empty curve.
-    return Curve();
+    //return Curve();
+    return result;
 }
 
 Curve evalBspline( const vector< Vector3f >& P, unsigned steps )
@@ -75,6 +122,61 @@ Curve evalBspline( const vector< Vector3f >& P, unsigned steps )
     // basis from B-spline to Bezier.  That way, you can just call
     // your evalBezier function.
 
+    Curve result;
+    Matrix4f ctrlPointCoordsMat(0.f);
+    Matrix4f BSpline(1.f, -3.f, 3.f, -1.f, 4.f, 0.f, -6.f, 3.f, 1.f, 3.f, 3.f, -3.f, 0.f, 0.f, 0.f, 1.f);
+    //BSpline.print();
+    Matrix4f BSplineDeriv(-3.f, 6.f, -3.f, 0.f, 0.f, -12.f, 9.f, 0.f, 3.f, 4.f, -9.f, 0.f, 0.f, 0.f, 3.f, 0.f);
+    Matrix4f toScale;
+    toScale = toScale.uniformScaling(float(1.f / 6.f));
+    //toScale.print();
+    toScale[15] = float(1.f / 6.f);
+    BSpline = BSpline * toScale;
+    BSpline.print();
+    BSplineDeriv = BSplineDeriv * toScale;
+    float resolution = 1.f / float(steps);
+
+    for (unsigned i = 0; i < P.size(); i++)
+    {
+        Vector4f column(P[i][0], P[i][1], P[i][2], 0.f);
+        ctrlPointCoordsMat.setCol(i, column);
+    }
+
+    for (unsigned i = 0; i <= steps; i++)
+    {
+        float t = (float)i * resolution;
+        //std::cout << "t: " << t << std::endl;
+        Vector4f basis(1.f, t, t * t, t * t * t);
+        CurvePoint curvePoint;
+        Vector4f multiplicationResultV = (ctrlPointCoordsMat * BSpline) * basis;
+        curvePoint.V = multiplicationResultV.xyz();
+        Vector4f multiplicationResultT = (ctrlPointCoordsMat * BSplineDeriv) * basis;
+        curvePoint.T = multiplicationResultT.xyz().normalized();
+        //curvePoint.T.print();
+        if (i == 0)
+        {
+            Vector3f Bzero;
+            Bzero[2] = 1.f;
+            Bzero[1] = 0.f - (curvePoint.T[0] / curvePoint.T[1]);
+            Bzero = Bzero.normalized();
+            curvePoint.B = Bzero;
+            //curvePoint.B.print();
+            Vector3f Nzero;
+            Nzero = Nzero.cross(Bzero, curvePoint.T);
+            curvePoint.N = Nzero.normalized();
+            //curvePoint.N.print();
+            //std::cout << "0 loop ended\n";
+        }
+        else
+        {
+            curvePoint.N = curvePoint.N.cross(result[i - 1].B, curvePoint.T).normalized();
+            //curvePoint.N.print();
+            curvePoint.B = curvePoint.B.cross(curvePoint.T, curvePoint.N).normalized();
+            //curvePoint.N.print();
+        }
+        result.push_back(curvePoint);
+    }
+
     cerr << "\t>>> evalBSpline has been called with the following input:" << endl;
 
     cerr << "\t>>> Control points (type vector< Vector3f >): "<< endl;
@@ -87,7 +189,8 @@ Curve evalBspline( const vector< Vector3f >& P, unsigned steps )
     cerr << "\t>>> Returning empty curve." << endl;
 
     // Return an empty curve right now.
-    return Curve();
+    //return Curve();
+    return result;
 }
 
 Curve evalCircle( float radius, unsigned steps )
