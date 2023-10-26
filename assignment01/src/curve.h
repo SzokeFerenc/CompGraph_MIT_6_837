@@ -31,6 +31,8 @@ typedef std::vector< CurvePoint > Curve;
 // control point is shared).
 ////////////////////////////////////////////////////////////////////////////
 
+
+
 // Assume number of control points properly specifies a piecewise
 // Bezier curve.  I.e., C.size() == 4 + 3*n, n=0,1,...
 Curve evalBezier( const std::vector< Vector3f >& P, unsigned steps );
