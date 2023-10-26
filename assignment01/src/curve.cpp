@@ -71,9 +71,13 @@ Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
         //curvePoint.T.print();
         if (i == 0)
         {
-            Vector3f Bzero;
-            Bzero[2] = 1.f;
-            Bzero[1] = 0.f - (curvePoint.T[0] / curvePoint.T[1]);
+            Vector3f Bzero(0.f);
+            Bzero[0] = curvePoint.T[2];
+            Bzero[1] = 0.f;
+            if (curvePoint.T[0] != 0.f)
+                Bzero[2] = -1.f * curvePoint.T[0];
+            else
+                Bzero[2] = 1.f * curvePoint.T[1];
             Bzero = Bzero.normalized();
             curvePoint.B = Bzero;
             //curvePoint.B.print();
@@ -92,16 +96,16 @@ Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
         result.push_back(curvePoint);
     }
 
-    cerr << "\t>>> evalBezier has been called with the following input:" << endl;
+    /*cerr << "\t>>> evalBezier has been called with the following input:" << endl;
 
     cerr << "\t>>> Control points (type vector< Vector3f >): "<< endl;
     for( unsigned i = 0; i < P.size(); ++i )
     {
         cerr << "\t>>> " << P[i] << endl;
-    }
+    }*/
 
-    cerr << "\t>>> Steps (type steps): " << steps << endl;
-    cerr << "\t>>> Returning empty curve." << endl;
+    //cerr << "\t>>> Steps (type steps): " << steps << endl;
+    //cerr << "\t>>> Returning empty curve." << endl;
 
     // Right now this will just return this empty curve.
     //return Curve();
@@ -125,15 +129,15 @@ Curve evalBspline( const vector< Vector3f >& P, unsigned steps )
     Curve result;
     Matrix4f ctrlPointCoordsMat(0.f);
     Matrix4f BSpline(1.f, -3.f, 3.f, -1.f, 4.f, 0.f, -6.f, 3.f, 1.f, 3.f, 3.f, -3.f, 0.f, 0.f, 0.f, 1.f);
-    //BSpline.print();
-    Matrix4f BSplineDeriv(-3.f, 6.f, -3.f, 0.f, 0.f, -12.f, 9.f, 0.f, 3.f, 4.f, -9.f, 0.f, 0.f, 0.f, 3.f, 0.f);
-    Matrix4f toScale;
-    toScale = toScale.uniformScaling(float(1.f / 6.f));
-    //toScale.print();
-    toScale[15] = float(1.f / 6.f);
-    BSpline = BSpline * toScale;
     BSpline.print();
-    BSplineDeriv = BSplineDeriv * toScale;
+    Matrix4f BSplineDeriv(-0.5f, 1.f, -0.5f, 0.f, 0.f, -2.f, 1.5f, 0.f, 0.5f, 1.f, -1.5f, 0.f, 0.f, 0.f, 0.5f, 0.f);
+    BSplineDeriv.print();
+    float scalar = 1.f / 6.f;
+    for (int i = 0; i < 16; i++)
+    {
+        BSpline[i] *= scalar;
+    }
+    BSpline.print();
     float resolution = 1.f / float(steps);
 
     for (unsigned i = 0; i < P.size(); i++)
@@ -155,9 +159,13 @@ Curve evalBspline( const vector< Vector3f >& P, unsigned steps )
         //curvePoint.T.print();
         if (i == 0)
         {
-            Vector3f Bzero;
-            Bzero[2] = 1.f;
-            Bzero[1] = 0.f - (curvePoint.T[0] / curvePoint.T[1]);
+            Vector3f Bzero(0.f);
+            Bzero[0] = curvePoint.T[2];
+            Bzero[1] = 0.f;
+            if(curvePoint.T[0] != 0.f)
+                Bzero[2] = -1.f * curvePoint.T[0];
+            else
+                Bzero[2] = 1.f * curvePoint.T[1];
             Bzero = Bzero.normalized();
             curvePoint.B = Bzero;
             //curvePoint.B.print();
@@ -177,7 +185,7 @@ Curve evalBspline( const vector< Vector3f >& P, unsigned steps )
         result.push_back(curvePoint);
     }
 
-    cerr << "\t>>> evalBSpline has been called with the following input:" << endl;
+    /*cerr << "\t>>> evalBSpline has been called with the following input:" << endl;
 
     cerr << "\t>>> Control points (type vector< Vector3f >): "<< endl;
     for( unsigned i = 0; i < P.size(); ++i )
@@ -186,7 +194,7 @@ Curve evalBspline( const vector< Vector3f >& P, unsigned steps )
     }
 
     cerr << "\t>>> Steps (type steps): " << steps << endl;
-    cerr << "\t>>> Returning empty curve." << endl;
+    cerr << "\t>>> Returning empty curve." << endl;*/
 
     // Return an empty curve right now.
     //return Curve();
