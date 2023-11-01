@@ -52,7 +52,8 @@ void calculateSingleCurvePoints(
     const Matrix4f& basePolyDeriv
 )
 {
-    for (unsigned i = 0; i <= steps; i++)
+    //std::cout << "Steps: " << steps << std::endl;
+    for (unsigned i = 0; i < steps; i++)
     {
         float t = (float)i * resolution;
         Vector4f basis(1.f, t, t * t, t * t * t);
@@ -75,6 +76,7 @@ void calculateSingleCurvePoints(
         curvePoint.B = curvePoint.B.cross(curvePoint.T, curvePoint.N).normalized();
         result.push_back(curvePoint);
     }
+    //std::cout << "Curve points number: " << result.size() << std::endl;
 }
 
 void calculateMultipleCurvesPoints(
@@ -88,12 +90,13 @@ void calculateMultipleCurvesPoints(
     unsigned int increment = 1      // if Bezier -> increment = 3, if BSpline -> increment = default value = 1
 )
 {
-    for (unsigned int i = 0; i < P.size() - 3; i += increment)
+    for (unsigned int i = 0; i < (P.size() - 3); i += increment)
     {
         vector<Vector3f> singleCurveControlPoints;
         for (unsigned int j = 0; j < 4; j++)
         {
             singleCurveControlPoints.push_back(P[i + j]);
+            //std::cout << "i + j: " << i + j << std::endl;
         }
         if (singleCurveControlPoints.size() == 4)
         {
@@ -102,6 +105,7 @@ void calculateMultipleCurvesPoints(
         }
         else std::cout << "singleCurveControlpoints not collected\n";
     }
+    //std::cout << "result: " << result.size() << std::endl;
 }
 
 Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
@@ -137,7 +141,7 @@ Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
     Matrix4f BernsteinDeriv(-1.f, 2.f, -1.f, 0.f, 1.f, -4.f, 3.f, 0.f, 0.f, 2.f, -3.f, 0.f, 0.f, 0.f, 1.f, 0.f);
 
     float resolution = calculateCurveResolution(steps);
-    calculateMultipleCurvesPoints(P, result, steps, resolution, ctrlPointCoordsMat, Bernstein, BernsteinDeriv, 3);
+    calculateMultipleCurvesPoints(P, result, steps, resolution, ctrlPointCoordsMat, Bernstein, BernsteinDeriv, 3);  // last parameter is 3 because we want to build a Bezier curve
 
     /*cerr << "\t>>> evalBezier has been called with the following input:" << endl;
 

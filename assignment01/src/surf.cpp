@@ -19,6 +19,55 @@ namespace
     }
 }
 
+Curve rotateCurveAroundYAxis(const Curve& curve, const Matrix3f& rotMat, const Matrix3f& rotNormMat)
+{
+    Curve result;
+    for (unsigned int i = 0; i < curve.size(); i++)
+    {
+        CurvePoint curP;
+        curP.V = rotMat * curve[i].V;
+        curP.B = rotMat * curve[i].B;
+        curP.T = rotMat * curve[i].T;
+        curP.N = rotNormMat * curve[i].N;
+        result.push_back(curP);
+    }
+    return result;
+}
+
+void curveVertexDataToSurfaceData(Surface& surf, const Curve& curve, const unsigned int maxVertNum)
+{
+    unsigned int currSurfVecSize = surf.VV.size();
+    for (unsigned int i = 0; i < curve.size(); i++)
+    {
+        surf.VV.push_back(curve[i].V);
+        Vector3f surfNormal = curve[i].N;
+        surfNormal.negate();
+        surf.VN.push_back(surfNormal);
+        Tup3u vertexTriangle1;
+        Tup3u vertexTriangle2;
+        if (i < curve.size()-1 && (currSurfVecSize + i + curve.size()) < maxVertNum)
+        {
+            vertexTriangle1[0] = currSurfVecSize + i;
+            vertexTriangle1[1] = currSurfVecSize + i + 1;
+            vertexTriangle1[2] = currSurfVecSize + i + curve.size();
+            vertexTriangle2[0] = currSurfVecSize + i + 1;
+            vertexTriangle2[1] = currSurfVecSize + i + curve.size() + 1;
+            vertexTriangle2[2] = currSurfVecSize + i + curve.size();
+        }
+        else if (i < curve.size() - 1 && (currSurfVecSize + i + curve.size()) >= maxVertNum)
+        {
+            vertexTriangle1[0] = currSurfVecSize + i;
+            vertexTriangle1[1] = currSurfVecSize + i + 1;
+            vertexTriangle1[2] = currSurfVecSize + i + curve.size()- maxVertNum;
+            vertexTriangle2[0] = currSurfVecSize + i + 1;
+            vertexTriangle2[1] = currSurfVecSize + i + curve.size() + 1 - maxVertNum;
+            vertexTriangle2[2] = currSurfVecSize + i + curve.size() - maxVertNum;
+        }
+        surf.VF.push_back(vertexTriangle1);
+        surf.VF.push_back(vertexTriangle2);
+    }
+}
+
 Surface makeSurfRev(const Curve &profile, unsigned steps)
 {
     Surface surface;
@@ -30,6 +79,23 @@ Surface makeSurfRev(const Curve &profile, unsigned steps)
     }
 
     // TODO: Here you should build the surface.  See surf.h for details.
+    float rotationAngleUnit = float(2 * M_PI / steps);
+    
+    std::cout << "Rotation: " << steps << " times " << rotationAngleUnit << " radians.\n";
+    Matrix3f rotVertMat;
+    Matrix3f rotNormMat;
+
+    for (unsigned int i = 0; i < steps; i++)
+    {
+        float rotationAngle = 0.f;
+        rotationAngle += float(i * rotationAngleUnit);
+        rotVertMat = rotVertMat.rotateY(rotationAngle);
+        rotNormMat = rotVertMat.inverse().transposed();
+        Curve actualCurve;
+        actualCurve = rotateCurveAroundYAxis(profile, rotVertMat, rotNormMat);
+        unsigned int maxVertNum = profile.size() * steps;
+        curveVertexDataToSurfaceData(surface, actualCurve, maxVertNum);
+    }
 
     cerr << "\t>>> makeSurfRev called (but not implemented).\n\t>>> Returning empty surface." << endl;
  

@@ -21,6 +21,11 @@ struct Surface
     std::vector< Tup3u > VF;
 };
 
+// Helper functions
+
+Curve rotateCurveAroundYAxis(const Curve& curve, const Matrix3f& rotMat);
+void curveDataToSurfaceData(Surface& surf, const Curve& curve);
+
 // This draws the surface.  Draws the surfaces with smooth shading if
 // shaded==true, otherwise, draws a wireframe.
 void drawSurface( const Surface& surface, bool shaded );
