@@ -23,8 +23,10 @@ struct Surface
 
 // Helper functions
 
-Curve rotateCurveAroundYAxis(const Curve& curve, const Matrix3f& rotMat);
-void curveDataToSurfaceData(Surface& surf, const Curve& curve);
+Curve rotateCurveAroundYAxis(const Curve& curve, const Matrix3f& rotMat, const Matrix3f& rotNormMat);
+void curveVertexDataToSurfaceData(Surface& surf, const Curve& curve, const unsigned int maxVertNum);
+Matrix4f calculateTransformationMatrix(const CurvePoint& sweepCurvePoint);
+Curve transformCurve(const Curve& profile, const Matrix4f& tranMat);
 
 // This draws the surface.  Draws the surfaces with smooth shading if
 // shaded==true, otherwise, draws a wireframe.

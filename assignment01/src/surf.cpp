@@ -68,6 +68,35 @@ void curveVertexDataToSurfaceData(Surface& surf, const Curve& curve, const unsig
     }
 }
 
+Matrix4f calculateTransformationMatrix(const CurvePoint& sweepCurvePoint)
+{
+    Matrix4f transMat;
+    Vector4f normal(sweepCurvePoint.N, 0.0f);
+    transMat.setCol(0, normal);
+    Vector4f binormal(sweepCurvePoint.B, 0.0f);
+    transMat.setCol(1, binormal);
+    Vector4f tangent(sweepCurvePoint.T, 0.0f);
+    transMat.setCol(2, tangent);
+    Vector4f vertex(sweepCurvePoint.V, 1.0f);
+    transMat.setCol(3, vertex);
+    return transMat;
+}
+
+Curve transformCurve(const Curve& profile, const Matrix4f& tranMat)
+{
+    Curve result;
+    for (unsigned int i = 0; i < profile.size(); i++)
+    {
+        CurvePoint curP;
+        curP.N = (tranMat * Vector4f(profile[i].N, 0.f)).xyz();
+        curP.B = (tranMat * Vector4f(profile[i].B, 0.f)).xyz();
+        curP.T = (tranMat * Vector4f(profile[i].T, 0.f)).xyz();
+        curP.V = (tranMat * Vector4f(profile[i].V, 1.f)).xyz();
+        result.push_back(curP);
+    }
+    return result;
+}
+
 Surface makeSurfRev(const Curve &profile, unsigned steps)
 {
     Surface surface;
@@ -113,6 +142,17 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
     }
 
     // TODO: Here you should build the surface.  See surf.h for details.
+
+    std::cout << "Surface will have " << sweep.size() << " profiles\n";
+    unsigned int steps = sweep.size();
+    for (unsigned int i = 0; i < steps; i++)
+    {
+        Matrix4f transformationMat = calculateTransformationMatrix(sweep[i]);
+        Curve actualCurve;
+        actualCurve = transformCurve(profile, transformationMat);
+        unsigned int maxVertNum = profile.size() * steps;
+        curveVertexDataToSurfaceData(surface, actualCurve, maxVertNum);
+    }
 
     cerr << "\t>>> makeGenCyl called (but not implemented).\n\t>>> Returning empty surface." <<endl;
 
