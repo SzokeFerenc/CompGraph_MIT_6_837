@@ -145,13 +145,13 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
 
     std::cout << "Surface will have " << sweep.size() << " profiles\n";
     unsigned int steps = sweep.size();
-    for (unsigned int i = 0; i < steps; i++)
+    for (unsigned int i = 0; i < steps; i++)    // -1 needed to not calculate the very last curve which is equal to the first
     {
         Matrix4f transformationMat = calculateTransformationMatrix(sweep[i]);
         Curve actualCurve;
         actualCurve = transformCurve(profile, transformationMat);
-        unsigned int maxVertNum = profile.size() * steps;
-        curveVertexDataToSurfaceData(surface, actualCurve, maxVertNum);
+        unsigned int maxVertNum = profile.size() * steps;   // -1 here too to have correct max value
+        curveVertexDataToSurfaceData(surface, actualCurve, maxVertNum); // creates face triangles, connects the end to the beginning
     }
 
     cerr << "\t>>> makeGenCyl called (but not implemented).\n\t>>> Returning empty surface." <<endl;
