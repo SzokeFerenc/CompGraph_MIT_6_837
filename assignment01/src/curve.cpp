@@ -52,7 +52,6 @@ void calculateSingleCurvePoints(
     const Matrix4f& basePolyDeriv
 )
 {
-    //std::cout << "Steps: " << steps << std::endl;
     for (unsigned i = 0; i <= steps; i++)   // <= needed to close the closed curves and calculate last point of curve
     {
         float t = (float)i * resolution;
@@ -76,7 +75,6 @@ void calculateSingleCurvePoints(
         curvePoint.B = curvePoint.B.cross(curvePoint.T, curvePoint.N).normalized();
         result.push_back(curvePoint);
     }
-    //std::cout << "Curve points number: " << result.size() << std::endl;
 }
 
 void calculateMultipleCurvesPoints(
@@ -96,7 +94,6 @@ void calculateMultipleCurvesPoints(
         for (unsigned int j = 0; j < 4; j++)
         {
             singleCurveControlPoints.push_back(P[i + j]);
-            //std::cout << "i + j: " << i + j << std::endl;
         }
         if (singleCurveControlPoints.size() == 4)
         {
@@ -105,114 +102,12 @@ void calculateMultipleCurvesPoints(
         }
         else std::cout << "singleCurveControlpoints not collected\n";
     }
-    //std::cout << "result: " << result.size() << std::endl;
 }
-
-//void caclculateSingleCurveVerticesAndTangents     // calculates only the vertices and tangents of a single curve
-//(
-//    Curve& result,
-//    unsigned steps,
-//    float resolution,
-//    const Matrix4f& ctrlPoints,
-//    const Matrix4f& basePolynom,
-//    const Matrix4f& basePolyDeriv
-//)
-//{
-//    for (unsigned i = 0; i <= steps; i++)   // <= needed to close the closed curves and calculate last point of curve
-//    {
-//        float t = (float)i * resolution;
-//        Vector4f basis(1.f, t, t * t, t * t * t);
-//        CurvePoint curvePoint;
-//        Vector4f multiplicationResultV = (ctrlPoints * basePolynom) * basis;
-//        curvePoint.V = multiplicationResultV.xyz();
-//        Vector4f multiplicationResultT = (ctrlPoints * basePolyDeriv) * basis;
-//        curvePoint.T = multiplicationResultT.xyz().normalized();
-//        result.push_back(curvePoint);
-//    }
-//}
-
-//void calculateMultipleCurvesVerticesAndTangents    // calculates all the vertices and tangents of the connecting curves (final curve)
-//(
-//    const vector< Vector3f >& P,
-//    Curve& result,
-//    unsigned steps,
-//    float resolution,
-//    Matrix4f& ctrlPoints,
-//    const Matrix4f& basePolynom,
-//    const Matrix4f& basePolyDeriv,
-//    unsigned int increment = 1      // if Bezier -> increment = 3, if BSpline -> increment = default value = 1
-// )
-//{
-//    for (unsigned int i = 0; i < (P.size() - 3); i += increment)
-//    {
-//        vector<Vector3f> singleCurveControlPoints;
-//        for (unsigned int j = 0; j < 4; j++)
-//        {
-//            singleCurveControlPoints.push_back(P[i + j]);
-//            //std::cout << "i + j: " << i + j << std::endl;
-//        }
-//        if (singleCurveControlPoints.size() == 4)
-//        {
-//            fillMatrix4fWithVector3fs(ctrlPoints, singleCurveControlPoints);
-//            calculateSingleCurvePoints(result, steps, resolution, ctrlPoints, basePolynom, basePolyDeriv);
-//        }
-//        else std::cout << "singleCurveControlpoints not collected\n";
-//    }
-//}
-
-//void calculateBinormalAndNormalOfCurve(Curve& finalCurve)     // calculates the B, N values of the final curve
-//{
-//    for (unsigned int i = 0; i < finalCurve.size(); i++)
-//    {
-//        if (i == 0)
-//        {
-//            Vector3f Bzero(0.f, 0.f, 1.f);      // arbitrary vector (pointing towards positive Z) to calculate Nzero
-//            Vector3f Nzero;
-//            Nzero = Nzero.cross(Bzero, finalCurve[i].T).normalized();
-//            finalCurve[i].N = Nzero;
-//        }
-//        else
-//        {
-//            finalCurve[i].N = finalCurve[i].N.cross(finalCurve[i-1].B, finalCurve[i].T).normalized();
-//        }
-//        finalCurve[i].B = finalCurve[i].B.cross(finalCurve[i].T, finalCurve[i].N).normalized();
-//    }
-//    for (unsigned int i = 0; i < finalCurve.size(); i++)
-//    {
-//        if (i == 0)
-//        {
-//            finalCurve[i].N = finalCurve[i].N.cross(finalCurve[finalCurve.size()-2].B, finalCurve[i].T).normalized();
-//        }
-//        else
-//        {
-//            finalCurve[i].N = finalCurve[i].N.cross(finalCurve[i - 1].B, finalCurve[i].T).normalized();
-//        }
-//        finalCurve[i].B = finalCurve[i].B.cross(finalCurve[i].T, finalCurve[i].N).normalized();
-//    }
-//}
-
-//bool isCurveClosed(const vector< Vector3f >& controlPoints)
-//{
-//    bool result = false;
-//    size_t cPnum = controlPoints.size();
-//    if (approx(controlPoints[0], controlPoints[cPnum - 3]) && approx(controlPoints[1], controlPoints[cPnum - 2]) && approx(controlPoints[2], controlPoints[cPnum - 1]))
-//    {
-//        result = true;
-//    }
-//    return result;
-//}
 
 bool isCurveClosed(const Curve& curve)
 {
     bool result = false;
     size_t cPointNum = curve.size();
-
-    /*std::cout << "startvertex: ";
-    curve.front().V.print();
-    std::cout << " endvertex: ";
-    curve.back().V.print();
-    std::cout << std::endl;*/
-
     if (approx(curve.front().V, curve.back().V))
     {
         result = true;
@@ -223,17 +118,9 @@ bool isCurveClosed(const Curve& curve)
 bool areEndPointsBinormalAndNormalDifferent(const Curve& curve)
 {
     bool result = false;
-
-    /*std::cout << "startbinormal: ";
-    curve.front().B.print();
-    std::cout << " endbinormal: ";
-    curve.back().B.print();
-    std::cout << std::endl;*/
-
     if (!approx(curve.front().B,curve.back().B))
     {
         result = true;
-        //std::cout << "Binormals not equal.\n";
     }
     return result;
 }
@@ -242,27 +129,18 @@ void recalcClosedCurveBinormalsAndNormals(Curve& finalCurve)    //
 {
     if (isCurveClosed(finalCurve) && areEndPointsBinormalAndNormalDifferent(finalCurve))
     {
-        //std::cout << "Curve is closed and the endpoint normals and binormals are not equal!!!\n";
         float angleDiff = 0.f;
         float dotProdBinorm = Vector3f::dot(finalCurve.front().B, finalCurve.back().B);
         angleDiff = acos(dotProdBinorm);
-        //std::cout << "Binormal anglediff: " << angleDiff << std::endl;
         float dotProdNorm = Vector3f::dot(finalCurve.front().N, finalCurve.back().N);
         angleDiff = acos(dotProdNorm);
-        //std::cout << "Normal anglediff: " << angleDiff << std::endl;
         unsigned int steps = finalCurve.size();
         float rotAngle = angleDiff / steps * -1;    // -1 needed because it is working against the difference
-        //std::cout << "Have to rotate all binormals and normals with angle: " << rotAngle << std::endl;
         for (unsigned int i = 0; i < steps; i++)
         {
             Matrix3f rotMat;
-            
             rotMat = rotMat.rotation(finalCurve[i].T, rotAngle * i);
-            //rotMat.print();
-            //finalCurve[i].B.print();
             finalCurve[i].B = rotMat * finalCurve[i].B;
-            //finalCurve[i].B.print();
-            //std::cout << std::endl;
             finalCurve[i].N = rotMat * finalCurve[i].N;
         }
     }
@@ -302,8 +180,6 @@ Curve evalBezier( const vector< Vector3f >& P, unsigned steps )
 
     float resolution = calculateCurveResolution(steps);
     calculateMultipleCurvesPoints(P, result, steps, resolution, ctrlPointCoordsMat, Bernstein, BernsteinDeriv, 3);  // last parameter is 3 because we want to build a Bezier curve
-    //calculateMultipleCurvesVerticesAndTangents(P, result, steps, resolution, ctrlPointCoordsMat, Bernstein, BernsteinDeriv, 3);  // last parameter is 3 because we want to build a Bezier curve
-    //calculateBinormalAndNormalOfCurve(result);
     recalcClosedCurveBinormalsAndNormals(result);
 
     /*cerr << "\t>>> evalBezier has been called with the following input:" << endl;
@@ -331,17 +207,6 @@ Curve evalBspline( const vector< Vector3f >& P, unsigned steps )
         exit( 0 );
     }
 
-    //// Check if curve is going to be closed
-    //bool curveIsClosed = false;
-    //for (unsigned int i = 1; i < P.size(); i++)
-    //{
-    //    if (P[0] == P[i])
-    //    {
-    //        curveIsClosed = true;
-    //        break;
-    //    }
-    //}
-
     // TODO:
     // It is suggested that you implement this function by changing
     // basis from B-spline to Bezier.  That way, you can just call
@@ -357,15 +222,7 @@ Curve evalBspline( const vector< Vector3f >& P, unsigned steps )
 
     float resolution = calculateCurveResolution(steps);
     calculateMultipleCurvesPoints(P, result, steps, resolution, ctrlPointCoordsMat, BSpline, BSplineDeriv);
-    //calculateMultipleCurvesVerticesAndTangents(P, result, steps, resolution, ctrlPointCoordsMat, BSpline, BSplineDeriv);
-    //calculateBinormalAndNormalOfCurve(result);
     recalcClosedCurveBinormalsAndNormals(result);
-
-    /*if (curveIsClosed)
-
-    {
-        result.push_back(result[0]);
-    }*/
 
     /*cerr << "\t>>> evalBSpline has been called with the following input:" << endl;
 
