@@ -246,13 +246,14 @@ namespace
         glClearColor(0,0,0,1);
 
         // Base material colors (they don't change)
-        GLfloat diffColor[] = {0.4, 0.4, 0.4, 1};
-        GLfloat specColor[] = {0.9, 0.9, 0.9, 1};
-        GLfloat shininess[] = {50.0};
+        //GLfloat diffColor[] = {0.4, 0.4, 0.4, 1};
+        //GLfloat diffColor[] = { 1.0, 0.0, 0.0, 1 };
+        //GLfloat specColor[] = {0.9, 0.9, 0.9, 1};
+        //GLfloat shininess[] = {50.0};
 
-        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, diffColor);
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
-        glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
+        //glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, diffColor);
+        //glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specColor);
+        //glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, shininess);
     }
 
     // Load in objects from standard input into the global variables: 

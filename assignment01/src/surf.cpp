@@ -143,20 +143,42 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
 
     // TODO: Here you should build the surface.  See surf.h for details.
 
-    std::cout << "Surface will have " << sweep.size() << " profiles\n";
+    //std::cout << "Surface will have " << sweep.size() << " profiles\n";
     unsigned int steps = sweep.size();
-    for (unsigned int i = 0; i < steps; i++)    // -1 needed to not calculate the very last curve which is equal to the first
+    for (unsigned int i = 0; i < steps; i++)
     {
         Matrix4f transformationMat = calculateTransformationMatrix(sweep[i]);
         Curve actualCurve;
         actualCurve = transformCurve(profile, transformationMat);
-        unsigned int maxVertNum = profile.size() * steps;   // -1 here too to have correct max value
+        unsigned int maxVertNum = profile.size() * steps;
         curveVertexDataToSurfaceData(surface, actualCurve, maxVertNum); // creates face triangles, connects the end to the beginning
     }
 
     cerr << "\t>>> makeGenCyl called (but not implemented).\n\t>>> Returning empty surface." <<endl;
 
     return surface;
+}
+
+GLfloat* colorDependingOnCurvature(const Surface& surf, unsigned int i, unsigned int j)
+{
+    GLfloat result[4] = { 0.3f, 0.3f, 0.3f, 1.f };
+    
+    float angleDiff = 0.f;
+    float dotProdNorm = 0.f;
+    if (surf.VF[i][j] == 0)
+    {
+        dotProdNorm = Vector3f::dot(surf.VN.front(), surf.VN.back());
+        angleDiff = acos(dotProdNorm);
+        std::cout << "Normal angle diff at vertex " << surf.VF[i][j] << " : " << angleDiff << std::endl;
+    }
+    else
+    {
+        dotProdNorm = Vector3f::dot(surf.VN[surf.VF[i][j]], surf.VN[surf.VF[i][j]-1]);
+        angleDiff = acos(dotProdNorm);
+    }
+    result[0] = angleDiff / M_PI / 2.0f;
+    
+    return result;
 }
 
 void drawSurface(const Surface &surface, bool shaded)
@@ -176,6 +198,10 @@ void drawSurface(const Surface &surface, bool shaded)
         // make sure that your triangles are drawn in the right order.
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK);
+
+        // Enable color material to use custom vertex colors
+        glEnable(GL_COLOR_MATERIAL);
+        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     }
     else
     {        
@@ -189,15 +215,24 @@ void drawSurface(const Surface &surface, bool shaded)
     glBegin(GL_TRIANGLES);
     for (unsigned i=0; i<surface.VF.size(); i++)
     {
+        /*GLfloat* col1 = colorDependingOnCurvature(surface, i, 0);
+        glColor4f(col1[0], col1[1], col1[2], col1[3]);*/
+        glColor4f(1.f, 0.f, 0.f, 0.f);
         glNormal(surface.VN[surface.VF[i][0]]);
         glVertex(surface.VV[surface.VF[i][0]]);
+        /*GLfloat* col2 = colorDependingOnCurvature(surface, i, 1);
+        glColor4f(col2[0], col2[1], col2[2], col2[3]);*/
+        glColor4f(0.f, 1.f, 0.f, 0.f);
         glNormal(surface.VN[surface.VF[i][1]]);
         glVertex(surface.VV[surface.VF[i][1]]);
+        /*GLfloat* col3 = colorDependingOnCurvature(surface, i, 2);
+        glColor4f(col3[0], col3[1], col3[2], col3[3]);*/
+        glColor4f(1.f, 0.f, 1.f, 0.f);
         glNormal(surface.VN[surface.VF[i][2]]);
         glVertex(surface.VV[surface.VF[i][2]]);
     }
     glEnd();
-
+    
     glPopAttrib();
 }
 
