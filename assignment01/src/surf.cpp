@@ -100,7 +100,10 @@ Curve transformCurve(const Curve& profile, const Matrix4f& tranMat)
 Surface makeSurfRev(const Curve &profile, unsigned steps)
 {
     Surface surface;
-    
+
+    /*sweepSteps = steps;
+    profileSteps = profile.size();*/
+
     if (!checkFlat(profile))
     {
         cerr << "surfRev profile curve must be flat on xy plane." << endl;
@@ -135,6 +138,9 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
 {
     Surface surface;
 
+    /*sweepSteps = sweep.size();
+    profileSteps = profile.size();*/
+
     if (!checkFlat(profile))
     {
         cerr << "genCyl profile curve must be flat on xy plane." << endl;
@@ -159,24 +165,57 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
     return surface;
 }
 
+// function to calculate color depending on the angle of the vertex normal to
+// axis Y -> red
+// axis X -> green
+// axis Z -> blue
 GLfloat* colorDependingOnCurvature(const Surface& surf, unsigned int i, unsigned int j)
 {
     GLfloat result[4] = { 0.3f, 0.3f, 0.3f, 1.f };
     
     float angleDiff = 0.f;
     float dotProdNorm = 0.f;
-    if (surf.VF[i][j] == 0)
+    Vector3f base{ 0.f, 0.f, 0.f };
+
+    // dealing with direction up (Y)
+
+    dotProdNorm = Vector3f::dot(surf.VN[surf.VF[i][j]], Vector3f{ 0.f, 1.f, 0.f });
+    
+    if (dotProdNorm > 1.f) dotProdNorm = 1.f;
+    if (dotProdNorm < -1.f) dotProdNorm = -1.f;
+    angleDiff = acos(dotProdNorm);
+    
+    result[0] = abs(angleDiff / M_PI);
+
+    // dealing with direction left-right (X)
+
+    dotProdNorm = Vector3f::dot(surf.VN[surf.VF[i][j]], Vector3f{ 1.f, 0.f, 0.f });
+    
+    if (dotProdNorm > 1.f) dotProdNorm = 1.f;
+    if (dotProdNorm < -1.f) dotProdNorm = -1.f;
+    angleDiff = acos(dotProdNorm);
+    
+    result[1] = abs(angleDiff / M_PI);
+
+    // dealing with direction depth (Z)
+
+    dotProdNorm = Vector3f::dot(surf.VN[surf.VF[i][j]], Vector3f{ 0.f, 0.f, 1.f });
+    
+    if (dotProdNorm > 1.f) dotProdNorm = 1.f;
+    if (dotProdNorm < -1.f) dotProdNorm = -1.f;
+    angleDiff = acos(dotProdNorm);
+    
+    result[2] = abs(angleDiff / M_PI);
+
+    /*for (unsigned int k = 0; k < 3; k++)
     {
-        dotProdNorm = Vector3f::dot(surf.VN.front(), surf.VN.back());
+        base[k] = 1.f;
+        dotProdNorm = Vector3f::dot(surf.VN[surf.VF[i][j]], base);
+        if (dotProdNorm > 1.f) dotProdNorm = 1.f;
+        if (dotProdNorm < -1.f) dotProdNorm = -1.f;
         angleDiff = acos(dotProdNorm);
-        std::cout << "Normal angle diff at vertex " << surf.VF[i][j] << " : " << angleDiff << std::endl;
-    }
-    else
-    {
-        dotProdNorm = Vector3f::dot(surf.VN[surf.VF[i][j]], surf.VN[surf.VF[i][j]-1]);
-        angleDiff = acos(dotProdNorm);
-    }
-    result[0] = angleDiff / M_PI / 2.0f;
+        result[k] = abs(angleDiff / M_PI);
+    }*/
     
     return result;
 }
@@ -215,19 +254,19 @@ void drawSurface(const Surface &surface, bool shaded)
     glBegin(GL_TRIANGLES);
     for (unsigned i=0; i<surface.VF.size(); i++)
     {
-        /*GLfloat* col1 = colorDependingOnCurvature(surface, i, 0);
-        glColor4f(col1[0], col1[1], col1[2], col1[3]);*/
-        glColor4f(1.f, 0.f, 0.f, 0.f);
+        GLfloat* col1 = colorDependingOnCurvature(surface, i, 0);
+        glColor4f(col1[0], col1[1], col1[2], col1[3]);
+        /*glColor4f(1.f, 0.f, 0.f, 0.f);*/
         glNormal(surface.VN[surface.VF[i][0]]);
         glVertex(surface.VV[surface.VF[i][0]]);
-        /*GLfloat* col2 = colorDependingOnCurvature(surface, i, 1);
-        glColor4f(col2[0], col2[1], col2[2], col2[3]);*/
-        glColor4f(0.f, 1.f, 0.f, 0.f);
+        GLfloat* col2 = colorDependingOnCurvature(surface, i, 1);
+        glColor4f(col2[0], col2[1], col2[2], col2[3]);
+        /*glColor4f(0.f, 1.f, 0.f, 0.f);*/
         glNormal(surface.VN[surface.VF[i][1]]);
         glVertex(surface.VV[surface.VF[i][1]]);
-        /*GLfloat* col3 = colorDependingOnCurvature(surface, i, 2);
-        glColor4f(col3[0], col3[1], col3[2], col3[3]);*/
-        glColor4f(1.f, 0.f, 1.f, 0.f);
+        GLfloat* col3 = colorDependingOnCurvature(surface, i, 2);
+        glColor4f(col3[0], col3[1], col3[2], col3[3]);
+        /*glColor4f(0.f, 0.f, 1.f, 0.f);*/
         glNormal(surface.VN[surface.VF[i][2]]);
         glVertex(surface.VV[surface.VF[i][2]]);
     }

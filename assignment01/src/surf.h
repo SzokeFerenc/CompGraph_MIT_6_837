@@ -21,6 +21,11 @@ struct Surface
     std::vector< Tup3u > VF;
 };
 
+// global variable to store sweep curve step units
+// needed for calculating custom coloring
+//static unsigned sweepSteps = 0;
+//static unsigned profileSteps = 0;
+
 // Helper functions
 
 Curve rotateCurveAroundYAxis(const Curve& curve, const Matrix3f& rotMat, const Matrix3f& rotNormMat);

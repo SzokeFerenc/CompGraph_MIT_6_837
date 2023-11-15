@@ -61,6 +61,8 @@ namespace
     vector<Surface> gSurfaces;
     vector<string> gSurfaceNames;
 
+    
+
     // Declarations of functions whose implementations occur later.
     void arcballRotation(int endX, int endY);
     void keyboardFunc( unsigned char key, int x, int y);
