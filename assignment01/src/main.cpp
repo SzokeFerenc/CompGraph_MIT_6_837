@@ -39,6 +39,8 @@ namespace
     int  gCurveMode = 1;
     int  gSurfaceMode = 1;
     int  gPointMode = 1;
+    int  gRenderColor = 1;
+    int  gRendColPrev = 1;
 
     // This detemines how big to draw the normals
     const float gLineLen = 0.1f;
@@ -84,7 +86,7 @@ namespace
         case 27: // Escape key
             exit(0);
             break;
-        case ' ':
+        case ' ':   // space key
         {
             Matrix4f eye = Matrix4f::identity();
             camera.SetRotation(eye);
@@ -103,10 +105,21 @@ namespace
         case 'P':
             gPointMode = (gPointMode+1)%2;
             break;            
+        case 'r':
+        case 'R':
+            gRenderColor = (gRenderColor + 1) % 2;
+            if (gRenderColor == 1)
+            {
+                std::cout << "Surface colored depending on vertex normal angles compared to UP vector.\n";
+            }
+            else if (gRenderColor == 0)
+            {
+                std::cout << "Surface colored depending on curvature.\n";
+            }
+            break;
         default:
             cout << "Unhandled key press " << key << "." << endl;        
         }
-
         glutPostRedisplay();
     }
 
@@ -198,6 +211,7 @@ namespace
 
         // Call the relevant display lists.
         if (gSurfaceMode)
+            std::cout << "gRenderColor: " << gRenderColor << std::endl;
             glCallList(gSurfaceLists[gSurfaceMode]);
 
         if (gCurveMode)
@@ -215,10 +229,17 @@ namespace
 
         if (gPointMode)
             glCallList(gPointList);
-                 
+        
+        if (gRendColPrev != gRenderColor)
+        {
+            makeDisplayLists();     // needed to make new display lists with the changed colors
+            gRendColPrev = gRenderColor;
+            glutPostRedisplay();    // needed to refresh the window with the updated colors
+        }
+            
+
         // Dump the image to the screen.
         glutSwapBuffers();
-
 
     }
 
@@ -357,15 +378,16 @@ namespace
         glNewList(gSurfaceLists[1], GL_COMPILE);
         {
             for (unsigned i=0; i<gSurfaces.size(); i++)
-                drawSurface(gSurfaces[i], true);
+                drawSurface(gSurfaces[i], true, gRenderColor);
         }
         glEndList();
 
         glNewList(gSurfaceLists[2], GL_COMPILE);
         {
+            std::cout << "makeDisplayList\n";
             for (unsigned i=0; i<gSurfaces.size(); i++)
             {
-                drawSurface(gSurfaces[i], false);
+                drawSurface(gSurfaces[i], false, gRenderColor);
                 drawNormals(gSurfaces[i], gLineLen);
             }
         }
@@ -474,6 +496,7 @@ int main( int argc, char* argv[] )
     //  glutTimerFunc(20, timerFunc, 0);
 
     makeDisplayLists();
+    
         
     // Start the main loop.  glutMainLoop never returns.
     glutMainLoop();

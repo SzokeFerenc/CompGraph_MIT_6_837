@@ -23,8 +23,8 @@ struct Surface
 
 // global variable to store sweep curve step units
 // needed for calculating custom coloring
-//static unsigned sweepSteps = 0;
-//static unsigned profileSteps = 0;
+static unsigned sweepSteps = 0;
+static unsigned profileSteps = 0;
 
 // Helper functions
 
@@ -35,7 +35,7 @@ Curve transformCurve(const Curve& profile, const Matrix4f& tranMat);
 
 // This draws the surface.  Draws the surfaces with smooth shading if
 // shaded==true, otherwise, draws a wireframe.
-void drawSurface( const Surface& surface, bool shaded );
+void drawSurface( const Surface& surface, bool shaded, int renderColor);
 
 // This draws normals to the surface at each vertex of length len.
 void drawNormals( const Surface& surface, float len );

@@ -43,6 +43,20 @@ float calculateCurveResolution(unsigned steps)
     return 1.f / float(steps);
 }
 
+bool isCurvePointStillNotInCurve(const Curve& curve, const CurvePoint& cp)
+{
+    bool result = true;
+    for (const auto& i : curve)
+    {
+        if (i.V == cp.V && i.N == cp.N && curve[0].V != i.V)    // last condition needed to close the curve
+        {
+            result = false;
+            break;
+        }
+    }
+    return result;
+}
+
 void calculateSingleCurvePoints(
     Curve& result,
     unsigned steps,
@@ -73,7 +87,13 @@ void calculateSingleCurvePoints(
             curvePoint.N = curvePoint.N.cross(result.back().B, curvePoint.T).normalized();
         }
         curvePoint.B = curvePoint.B.cross(curvePoint.T, curvePoint.N).normalized();
-        result.push_back(curvePoint);
+        // check if curvePoint is alread in result (end and begin points might be the same)
+        if (isCurvePointStillNotInCurve(result, curvePoint))
+        {
+            result.push_back(curvePoint);
+        }
+        else
+            std::cout << "Curve endpoint equals next curve start point.\n";
     }
 }
 

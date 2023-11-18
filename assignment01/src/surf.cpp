@@ -101,8 +101,8 @@ Surface makeSurfRev(const Curve &profile, unsigned steps)
 {
     Surface surface;
 
-    /*sweepSteps = steps;
-    profileSteps = profile.size();*/
+    sweepSteps = steps;
+    profileSteps = profile.size();
 
     if (!checkFlat(profile))
     {
@@ -129,7 +129,7 @@ Surface makeSurfRev(const Curve &profile, unsigned steps)
         curveVertexDataToSurfaceData(surface, actualCurve, maxVertNum);
     }
 
-    cerr << "\t>>> makeSurfRev called (but not implemented).\n\t>>> Returning empty surface." << endl;
+    //cerr << "\t>>> makeSurfRev called (but not implemented).\n\t>>> Returning empty surface." << endl;
  
     return surface;
 }
@@ -138,8 +138,8 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
 {
     Surface surface;
 
-    /*sweepSteps = sweep.size();
-    profileSteps = profile.size();*/
+    sweepSteps = sweep.size();
+    profileSteps = profile.size();
 
     if (!checkFlat(profile))
     {
@@ -160,7 +160,7 @@ Surface makeGenCyl(const Curve &profile, const Curve &sweep )
         curveVertexDataToSurfaceData(surface, actualCurve, maxVertNum); // creates face triangles, connects the end to the beginning
     }
 
-    cerr << "\t>>> makeGenCyl called (but not implemented).\n\t>>> Returning empty surface." <<endl;
+    //cerr << "\t>>> makeGenCyl called (but not implemented).\n\t>>> Returning empty surface." <<endl;
 
     return surface;
 }
@@ -220,7 +220,61 @@ GLfloat* colorDependingOnCurvature(const Surface& surf, unsigned int i, unsigned
     return result;
 }
 
-void drawSurface(const Surface &surface, bool shaded)
+// function to calculate color depending on the angle of the adjacent vertex normals
+GLfloat* colorDependingOnProfileCurvature(const Surface& surf, unsigned int i, unsigned int j)
+{
+    GLfloat result[4] = { 0.3f, 0.3f, 1.f, 1.f };
+
+    float angleDiff = 0.f;
+    float dotProdNorm = 0.f;
+
+    unsigned index = surf.VF[i][j];
+    unsigned nextIndex = 0;
+
+    // profile curvature
+
+    if ((index + 1) % profileSteps != 0)
+    {
+        nextIndex = index + 1;
+    }
+    else if ((index + 1) % profileSteps == 0)
+    {
+        nextIndex = index - profileSteps + 1;
+    }
+
+    dotProdNorm = Vector3f::dot(surf.VN[index], surf.VN[nextIndex]);
+
+    if (dotProdNorm > 1.f) dotProdNorm = 1.f;
+    if (dotProdNorm < -1.f) dotProdNorm = -1.f;
+    angleDiff = acos(dotProdNorm);
+    //std::cout << "anglediff: " << angleDiff << std::endl;
+
+    result[0] = abs(angleDiff / M_PI);
+
+    // sweep curvature
+
+    if ((index + profileSteps) < surf.VV.size())
+    {
+        nextIndex = index + profileSteps;
+    }
+    else
+    {
+        nextIndex = 0 + index % profileSteps;
+    }
+
+    dotProdNorm = Vector3f::dot(surf.VN[index], surf.VN[nextIndex]);
+
+    if (dotProdNorm > 1.f) dotProdNorm = 1.f;
+    if (dotProdNorm < -1.f) dotProdNorm = -1.f;
+    angleDiff = acos(dotProdNorm);
+    //std::cout << "anglediff: " << angleDiff << std::endl;
+
+    result[1] = abs(angleDiff / M_PI);
+
+    return result;
+}
+
+void drawSurface(const Surface &surface, bool shaded, int coloring)
 {
     // Save current state of OpenGL
     glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -254,17 +308,50 @@ void drawSurface(const Surface &surface, bool shaded)
     glBegin(GL_TRIANGLES);
     for (unsigned i=0; i<surface.VF.size(); i++)
     {
-        GLfloat* col1 = colorDependingOnCurvature(surface, i, 0);
+        GLfloat col1[4]{ 0.3f, 0.3f, 0.3f, 1.f };
+        GLfloat col2[4]{ 0.3f, 0.3f, 0.3f, 1.f };
+        GLfloat col3[4]{ 0.3f, 0.3f, 0.3f, 1.f };
+
+        if (coloring == 1)
+        {
+            GLfloat* temp = colorDependingOnCurvature(surface, i, 0);
+            col1[0] = temp[0];
+            col1[1] = temp[1];
+            col1[2] = temp[2];
+            temp = colorDependingOnCurvature(surface, i, 1);
+            col2[0] = temp[0];
+            col2[1] = temp[1];
+            col2[2] = temp[2];
+            temp = colorDependingOnCurvature(surface, i, 2);
+            col3[0] = temp[0];
+            col3[1] = temp[1];
+            col3[2] = temp[2];
+        }
+        else if (coloring == 0)
+        {
+            GLfloat* temp = colorDependingOnProfileCurvature(surface, i, 0);
+            col1[0] = temp[0];
+            col1[1] = temp[1];
+            col1[2] = temp[2];
+            temp = colorDependingOnProfileCurvature(surface, i, 1);
+            col2[0] = temp[0];
+            col2[1] = temp[1];
+            col2[2] = temp[2];
+            temp = colorDependingOnProfileCurvature(surface, i, 2);
+            col3[0] = temp[0];
+            col3[1] = temp[1];
+            col3[2] = temp[2];
+        }
         glColor4f(col1[0], col1[1], col1[2], col1[3]);
         /*glColor4f(1.f, 0.f, 0.f, 0.f);*/
         glNormal(surface.VN[surface.VF[i][0]]);
         glVertex(surface.VV[surface.VF[i][0]]);
-        GLfloat* col2 = colorDependingOnCurvature(surface, i, 1);
+
         glColor4f(col2[0], col2[1], col2[2], col2[3]);
         /*glColor4f(0.f, 1.f, 0.f, 0.f);*/
         glNormal(surface.VN[surface.VF[i][1]]);
         glVertex(surface.VV[surface.VF[i][1]]);
-        GLfloat* col3 = colorDependingOnCurvature(surface, i, 2);
+        
         glColor4f(col3[0], col3[1], col3[2], col3[3]);
         /*glColor4f(0.f, 0.f, 1.f, 0.f);*/
         glNormal(surface.VN[surface.VF[i][2]]);
@@ -287,6 +374,16 @@ void drawNormals(const Surface &surface, float len)
     glBegin(GL_LINES);
     for (unsigned i=0; i<surface.VV.size(); i++)
     {
+        if (i >= profileSteps && i < 2*profileSteps)
+        {
+            glColor4f(1, 0, 0, 1);
+        }
+        else if (i % profileSteps == 0)
+        {
+            glColor4f(0, 0, 1, 1);
+        }
+        else
+            glColor4f(0, 1, 1, 1);
         glVertex(surface.VV[i]);
         glVertex(surface.VV[i] + surface.VN[i] * len);
     }
