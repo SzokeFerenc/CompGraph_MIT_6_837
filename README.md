@@ -1,7 +1,7 @@
 # CompGraph_MIT_6_837
 Repo for assignments of OpenCourseWare course Computer Graphics 6.837\
-This is freetime project for own educational purposes, if you notice something odd or wrong in the code please report it to me.\
-Only checked tasks are implemented.
+This is a freetime project for own educational purposes, if you notice something odd or wrong in the code please report it to me.\
+Only checked tasks are implemented!
 
 ## Assignment00
 
