@@ -6,7 +6,7 @@ Assignment00
 Tasks:
 
 Basic:
-	Color changes 			- implemented
-	Light position changes 		- implemented
-	Mesh loading and display	- implemented
+	- [x] Color changes
+	- [x] Light position changes
+	- [x] Mesh loading and display
 
